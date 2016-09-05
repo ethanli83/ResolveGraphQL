@@ -1045,6 +1045,41 @@
           "lib/netstandard1.4/System.ComponentModel.Annotations.dll": {}
         }
       },
+      "System.ComponentModel.Primitives/4.0.0": {
+        "type": "package",
+        "dependencies": {
+          "System.ComponentModel": "4.0.0",
+          "System.Runtime": "4.0.20"
+        },
+        "compile": {
+          "ref/dotnet/System.ComponentModel.Primitives.dll": {}
+        },
+        "runtime": {
+          "lib/dotnet/System.ComponentModel.Primitives.dll": {}
+        }
+      },
+      "System.ComponentModel.TypeConverter/4.0.0": {
+        "type": "package",
+        "dependencies": {
+          "System.Collections": "4.0.10",
+          "System.ComponentModel": "4.0.0",
+          "System.ComponentModel.Primitives": "4.0.0",
+          "System.Globalization": "4.0.10",
+          "System.Reflection": "4.0.10",
+          "System.Reflection.Extensions": "4.0.0",
+          "System.Reflection.Primitives": "4.0.0",
+          "System.Resources.ResourceManager": "4.0.0",
+          "System.Runtime": "4.0.20",
+          "System.Runtime.Extensions": "4.0.10",
+          "System.Threading": "4.0.10"
+        },
+        "compile": {
+          "ref/dotnet/System.ComponentModel.TypeConverter.dll": {}
+        },
+        "runtime": {
+          "lib/dotnet/System.ComponentModel.TypeConverter.dll": {}
+        }
+      },
       "System.Console/4.0.0": {
         "type": "package",
         "dependencies": {
@@ -2700,6 +2735,35 @@
         "runtime": {
           "lib/netstandard1.3/System.Xml.XPath.XDocument.dll": {}
         }
+      },
+      "Unity/4.0.2": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.CSharp": "4.0.0-beta-23109",
+          "System.Diagnostics.Tools": "4.0.0-beta-23019",
+          "System.IO.FileSystem": "4.0.0",
+          "System.Runtime.Serialization.Primitives": "4.0.11-beta-23225",
+          "Unity.ServiceLocator": "2.0.0"
+        },
+        "compile": {
+          "lib/dotnet/Unity.dll": {}
+        },
+        "runtime": {
+          "lib/dotnet/Unity.dll": {}
+        }
+      },
+      "Unity.ServiceLocator/2.0.0": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.CSharp": "4.0.0",
+          "System.ComponentModel.TypeConverter": "4.0.0"
+        },
+        "compile": {
+          "lib/dnxcore50/Unity.ServiceLocator.dll": {}
+        },
+        "runtime": {
+          "lib/dnxcore50/Unity.ServiceLocator.dll": {}
+        }
       }
     }
   },
@@ -3877,6 +3941,68 @@
         "ref/xamarinmac20/_._",
         "ref/xamarintvos10/_._",
         "ref/xamarinwatchos10/_._"
+      ]
+    },
+    "System.ComponentModel.Primitives/4.0.0": {
+      "sha512": "8xElzEmEH5G6XK7qqxRLQ/2r1IuhXlkz0ZdgKNp6ViDD1ukadd+5hccqg1G/L4AYRy96ddMdvgyJjFW87Cegbw==",
+      "type": "package",
+      "path": "System.ComponentModel.Primitives/4.0.0",
+      "files": [
+        "System.ComponentModel.Primitives.4.0.0.nupkg.sha512",
+        "System.ComponentModel.Primitives.nuspec",
+        "lib/MonoAndroid10/_._",
+        "lib/MonoTouch10/_._",
+        "lib/dotnet/System.ComponentModel.Primitives.dll",
+        "lib/net46/System.ComponentModel.Primitives.dll",
+        "lib/xamarinios10/_._",
+        "lib/xamarinmac20/_._",
+        "ref/MonoAndroid10/_._",
+        "ref/MonoTouch10/_._",
+        "ref/dotnet/System.ComponentModel.Primitives.dll",
+        "ref/dotnet/System.ComponentModel.Primitives.xml",
+        "ref/dotnet/de/System.ComponentModel.Primitives.xml",
+        "ref/dotnet/es/System.ComponentModel.Primitives.xml",
+        "ref/dotnet/fr/System.ComponentModel.Primitives.xml",
+        "ref/dotnet/it/System.ComponentModel.Primitives.xml",
+        "ref/dotnet/ja/System.ComponentModel.Primitives.xml",
+        "ref/dotnet/ko/System.ComponentModel.Primitives.xml",
+        "ref/dotnet/ru/System.ComponentModel.Primitives.xml",
+        "ref/dotnet/zh-hans/System.ComponentModel.Primitives.xml",
+        "ref/dotnet/zh-hant/System.ComponentModel.Primitives.xml",
+        "ref/net46/System.ComponentModel.Primitives.dll",
+        "ref/xamarinios10/_._",
+        "ref/xamarinmac20/_._"
+      ]
+    },
+    "System.ComponentModel.TypeConverter/4.0.0": {
+      "sha512": "im3TpzE4j5M2ikOxV3/g2whofMzjpixyRlsr67KrX1fW6tC/iTsCmR54+Aqbh1qauKlgLbrbnC0bvij28LXS7g==",
+      "type": "package",
+      "path": "System.ComponentModel.TypeConverter/4.0.0",
+      "files": [
+        "System.ComponentModel.TypeConverter.4.0.0.nupkg.sha512",
+        "System.ComponentModel.TypeConverter.nuspec",
+        "lib/MonoAndroid10/_._",
+        "lib/MonoTouch10/_._",
+        "lib/dotnet/System.ComponentModel.TypeConverter.dll",
+        "lib/net46/System.ComponentModel.TypeConverter.dll",
+        "lib/xamarinios10/_._",
+        "lib/xamarinmac20/_._",
+        "ref/MonoAndroid10/_._",
+        "ref/MonoTouch10/_._",
+        "ref/dotnet/System.ComponentModel.TypeConverter.dll",
+        "ref/dotnet/System.ComponentModel.TypeConverter.xml",
+        "ref/dotnet/de/System.ComponentModel.TypeConverter.xml",
+        "ref/dotnet/es/System.ComponentModel.TypeConverter.xml",
+        "ref/dotnet/fr/System.ComponentModel.TypeConverter.xml",
+        "ref/dotnet/it/System.ComponentModel.TypeConverter.xml",
+        "ref/dotnet/ja/System.ComponentModel.TypeConverter.xml",
+        "ref/dotnet/ko/System.ComponentModel.TypeConverter.xml",
+        "ref/dotnet/ru/System.ComponentModel.TypeConverter.xml",
+        "ref/dotnet/zh-hans/System.ComponentModel.TypeConverter.xml",
+        "ref/dotnet/zh-hant/System.ComponentModel.TypeConverter.xml",
+        "ref/net46/System.ComponentModel.TypeConverter.dll",
+        "ref/xamarinios10/_._",
+        "ref/xamarinmac20/_._"
       ]
     },
     "System.Console/4.0.0": {
@@ -7878,13 +8004,46 @@
         "ref/xamarintvos10/_._",
         "ref/xamarinwatchos10/_._"
       ]
+    },
+    "Unity/4.0.2": {
+      "sha512": "mM/AGqlra8MMY75PSzFNqWgE8ZDxd8pTbXZ4U1TzOxPqRbeSog7bnXDJ4MhH/qC7rJsCLqj5pm3ipSRM/Q1TzQ==",
+      "type": "package",
+      "path": "Unity/4.0.2",
+      "files": [
+        "Unity.4.0.2.nupkg.sha512",
+        "Unity.nuspec",
+        "lib/dnx451/Unity.dll",
+        "lib/dnx451/Unity.xml",
+        "lib/dotnet/Unity.dll",
+        "lib/dotnet/Unity.xml",
+        "lib/net45/Unity.dll",
+        "lib/net45/Unity.xml"
+      ]
+    },
+    "Unity.ServiceLocator/2.0.0": {
+      "sha512": "E/+Pa+jCWGdreJ1izCzAPUgBNrgFHou/qH3fc7X+FLwV4ViByVxX0kBbiW7pa+qbgOkIiuYWPU+7DqhWuiC4Bg==",
+      "type": "package",
+      "path": "Unity.ServiceLocator/2.0.0",
+      "files": [
+        "Unity.ServiceLocator.2.0.0.nupkg.sha512",
+        "Unity.ServiceLocator.nuspec",
+        "lib/dnx451/Unity.ServiceLocator.dll",
+        "lib/dnx451/Unity.ServiceLocator.xml",
+        "lib/dnxcore50/Unity.ServiceLocator.dll",
+        "lib/dnxcore50/Unity.ServiceLocator.xml",
+        "lib/dotnet/Unity.ServiceLocator.dll",
+        "lib/dotnet/Unity.ServiceLocator.xml",
+        "lib/net45/Unity.ServiceLocator.dll",
+        "lib/net45/Unity.ServiceLocator.xml"
+      ]
     }
   },
   "projectFileDependencyGroups": {
     "": [
       "GraphQL >= 0.12.0-alpha-511",
       "Microsoft.EntityFrameworkCore.Design >= 1.0.0-preview2-final",
-      "Microsoft.EntityFrameworkCore.Sqlite >= 1.0.0"
+      "Microsoft.EntityFrameworkCore.Sqlite >= 1.0.0",
+      "Unity >= 4.0.2"
     ],
     ".NETCoreApp,Version=v1.0": [
       "Microsoft.NETCore.App >= 1.0.0"
