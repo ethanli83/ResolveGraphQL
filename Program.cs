@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using GraphQL;
 using GraphQL.Http;
 using GraphQL.Types;
-using Microsoft.EntityFrameworkCore;
 using ResolveGraphQL.DataModel;
 using ResolveGraphQL.Schema;
 using Unity;
@@ -17,25 +16,9 @@ namespace ResolveDataModel
         {
             using (var db = new StarWarsContext())
             {
-                if (db.Database.EnsureCreated())
-                {
-                    CreateDb(db);
-                    Console.WriteLine();
-                }
-
-                Console.WriteLine("All humans in database:");
-
-                var data = db.Humans.
-                    Include(h => h.Friends).
-                        ThenInclude(f => f.Droid).
-                    ToList();
-
-                foreach (var human in data)
-                {
-                    Console.WriteLine(" - Human: {0}", human.Name);
-                    foreach (var droid in human.Friends.Select(f => f.Droid))
-                        Console.WriteLine(" --- Droid {0}", droid.Name);
-                }
+                // insert some testing data into database
+                if (db.Humans.Count() == 0)
+                    InsertData(db);
 
                 var container = new UnityContainer();
 
@@ -81,7 +64,7 @@ namespace ResolveDataModel
             return writer.Write(result);
         }
 
-        private static void CreateDb(StarWarsContext db)
+        private static void InsertData(StarWarsContext db)
         {
             db.Humans.Add(new Human
             {
