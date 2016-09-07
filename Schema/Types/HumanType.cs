@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using GraphQL.Types;
 using Microsoft.EntityFrameworkCore;
@@ -35,10 +36,14 @@ namespace ResolveGraphQL.Schema
                         {
                             var humanIds = collection.Select(n => n.Node.HumanId).ToArray();
                             return new NodeCollection<Droid>(
-                                () => db.Droids.
+                                () => 
+                                {
+                                    Console.WriteLine("Loading all friends for humans");
+                                    return db.Droids.
                                     Where(d => d.Friends.Any(f => humanIds.Contains(f.HumanId))).
                                     Include(d => d.Friends).
-                                    ToList());
+                                    ToList();
+                                });
                         });
 
                     return childCollection.Where(d => d.Node.Friends.Any(f => f.HumanId == human.HumanId));

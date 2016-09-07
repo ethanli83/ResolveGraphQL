@@ -1,11 +1,14 @@
+using System;
+using System.Linq;
 using GraphQL.Types;
+using Microsoft.EntityFrameworkCore;
 using ResolveGraphQL.DataModel;
 
 namespace ResolveGraphQL.Schema
 {
     public class DroidType : ObjectGraphType
     {
-        public DroidType(StarWarsContext dtx)
+        public DroidType(StarWarsContext db)
         {
             Name = "Droid";
             Description = "A mechanical creature in the Star Wars universe.";
@@ -24,7 +27,28 @@ namespace ResolveGraphQL.Schema
 
             Field<ListGraphType<CharacterInterface>>(
                 "friends",
-                resolve: context => null
+                resolve: context => 
+                {
+                    var droid = context.GetGraphNode<Droid>();
+                    var collection = context.GetNodeCollection<Droid>();
+                    var childCollection = collection.GetOrAddRelation(
+                        "friends",
+                        () => 
+                        {
+                            var droidIds = collection.Select(n => n.Node.DroidId).ToArray();
+                            return new NodeCollection<Human>(
+                                () => 
+                                {
+                                    Console.WriteLine("Loading all friends for droids");
+                                    return db.Humans.
+                                    Where(d => d.Friends.Any(f => droidIds.Contains(f.DroidId))).
+                                    Include(d => d.Friends).
+                                    ToList();
+                                });
+                        });
+
+                    return childCollection.Where(d => d.Node.Friends.Any(f => f.DroidId == droid.DroidId));
+                }
             );
 
             Interface<CharacterInterface>();
