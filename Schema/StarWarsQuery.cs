@@ -23,7 +23,7 @@ namespace ResolveGraphQL.Schema
                     var collection = new NodeCollection<Human>(
                         () => db.Humans.Where(h => h.HumanId == id).ToList());
 
-                    return new FilteredGraphNode<Human>(collection);
+                    return collection.Single();
                 }
             );
 
@@ -33,7 +33,7 @@ namespace ResolveGraphQL.Schema
                     var collection = new NodeCollection<Human>(
                         () => db.Humans.ToList());
 
-                    return new FilteredNodeCollection<Human>(collection);
+                    return collection;
                 }
             );
 
@@ -45,7 +45,10 @@ namespace ResolveGraphQL.Schema
                 resolve: context => 
                 {
                     var id = context.GetArgument<int>("id");
-                    return db.Droids.Where(d => d.DroidId == id).ToList();
+                    var collection = new NodeCollection<Droid>(
+                        () => db.Droids.Where(d => d.DroidId == id).ToList());
+
+                    return collection.Single();
                 }
             );
         }

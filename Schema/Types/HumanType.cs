@@ -41,9 +41,7 @@ namespace ResolveGraphQL.Schema
                                     ToList());
                         });
 
-                    return new FilteredNodeCollection<Droid>(
-                        childCollection,
-                        d => d.Friends.Any(f => f.HumanId == human.HumanId));
+                    return childCollection.Where(d => d.Node.Friends.Any(f => f.HumanId == human.HumanId));
                 }
             );
 
