@@ -20,14 +20,20 @@ namespace ResolveGraphQL.Schema
                 resolve: context => 
                 {
                     var id = context.GetArgument<int>("id");
-                    return db.Humans.Where(h => h.HumanId == id).ToList();
+                    var collection = new NodeCollection<Human>(
+                        () => db.Humans.Where(h => h.HumanId == id).ToList());
+
+                    return new FilteredGraphNode<Human>(collection);
                 }
             );
 
             Field<ListGraphType<HumanType>>(
                 "humans",
                 resolve: context => {
-                    return db.Humans.ToList();
+                    var collection = new NodeCollection<Human>(
+                        () => db.Humans.ToList());
+
+                    return new FilteredNodeCollection<Human>(collection);
                 }
             );
 

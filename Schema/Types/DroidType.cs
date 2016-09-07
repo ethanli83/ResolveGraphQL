@@ -10,20 +10,26 @@ namespace ResolveGraphQL.Schema
             Name = "Droid";
             Description = "A mechanical creature in the Star Wars universe.";
 
-            Field<NonNullGraphType<StringGraphType>>("id", "The id of the droid.",
-                resolve: context => ((Droid)context.Source).DroidId);
+            Field<NonNullGraphType<StringGraphType>>(
+                "id", "The id of the droid.",
+                resolve: context => context.GetGraphNode<Droid>().DroidId);
 
-            Field<StringGraphType>("name", "The name of the droid.");
+            Field<StringGraphType>(
+                "name", "The name of the droid.",
+                resolve: context => context.GetGraphNode<Droid>().Name);
+
+            Field<StringGraphType>(
+                "primaryFunction", "The primary function of the droid.",
+                resolve: context => context.GetGraphNode<Droid>().PrimaryFunction);
+
             Field<ListGraphType<CharacterInterface>>(
                 "friends",
                 resolve: context => null
             );
-            
-            Field<StringGraphType>("primaryFunction", "The primary function of the droid.");
 
             Interface<CharacterInterface>();
 
-            IsTypeOf = value => value is Droid;
+            IsTypeOf = value => value is GraphNode<Droid>;
         }
     }
 }
