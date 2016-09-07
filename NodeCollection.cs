@@ -59,11 +59,6 @@ namespace ResolveGraphQL
 
     public class GraphNode<T>  where T : new()
     {
-        public GraphNode()
-        {
-
-        }
-        
         public GraphNode(T node, NodeCollection<T> collection)
         {
             Node = node;
