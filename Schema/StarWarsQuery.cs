@@ -51,6 +51,19 @@ namespace ResolveGraphQL.Schema
                     return collection.Single();
                 }
             );
+
+            Field<ListGraphType<CharacterInterface>>(
+                "characters",
+                resolve: context => {
+                    var humans = new NodeCollection<Human>(
+                        () => db.Humans.ToList());
+
+                    var droids = new NodeCollection<Droid>(
+                        () => db.Droids.ToList());
+
+                    return humans.Cast<object>().Union(droids);
+                }
+            );
         }
     }
 }

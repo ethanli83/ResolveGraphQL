@@ -42,6 +42,12 @@ namespace ResolveDataModel
                         }
                     }
                 }
+                characters {
+                    name
+                    friends {
+                        name
+                    }
+                }
             }";
             
                 var result = Execute(schema, null, query);

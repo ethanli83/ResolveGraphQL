@@ -7,7 +7,7 @@ using GraphQL.Types;
 
 namespace ResolveGraphQL
 {
-    public class NodeCollection<T> : IEnumerable<GraphNode<T>> where T : new()
+    public class NodeCollection<T> : IEnumerable<GraphNode<T>>
     {
         private ConcurrentDictionary<string, object> _relations = new ConcurrentDictionary<string, object>();
 
@@ -41,7 +41,7 @@ namespace ResolveGraphQL
             }
         }
 
-        internal NodeCollection<TC> GetOrAddRelation<TC>(string relationName, Func<NodeCollection<TC>> childCollectionLoader) where TC : new()
+        internal NodeCollection<TC> GetOrAddRelation<TC>(string relationName, Func<NodeCollection<TC>> childCollectionLoader)
         {
             return (NodeCollection<TC>)_relations.GetOrAdd(relationName, rn => childCollectionLoader());
         }
@@ -57,7 +57,7 @@ namespace ResolveGraphQL
         }
     }
 
-    public class GraphNode<T>  where T : new()
+    public class GraphNode<T>
     {
         public GraphNode(T node, NodeCollection<T> collection)
         {
@@ -72,12 +72,12 @@ namespace ResolveGraphQL
 
     public static class GraphNodeExtensions
     {
-        public static T GetGraphNode<T>(this ResolveFieldContext context) where T : new()
+        public static T GetGraphNode<T>(this ResolveFieldContext context)
         {
             return ((GraphNode<T>)context.Source).Node;
         }
 
-        public static NodeCollection<T> GetNodeCollection<T>(this ResolveFieldContext context) where T : new()
+        public static NodeCollection<T> GetNodeCollection<T>(this ResolveFieldContext context)
         {
             return ((GraphNode<T>)context.Source).Collection;
         }

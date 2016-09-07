@@ -14,7 +14,7 @@ namespace ResolveGraphQL.DataModel
         }
     }
 
-    public class Human
+    public class Human : ICharacter
     {
         public int HumanId { get; set; }
         public string Name { get; set; }
@@ -31,11 +31,18 @@ namespace ResolveGraphQL.DataModel
         public Droid Droid { get; set; }
     }
 
-    public class Droid
+    public class Droid : ICharacter
     {
         public int DroidId { get; set; }
         public string Name { get; set; }
         public string PrimaryFunction { get; set; }
         public List<HumanFreind> Friends { get; set; }
+    }
+
+    public interface ICharacter 
+    {
+        string Name { get; set; } 
+
+        List<HumanFreind> Friends { get; set; }
     }
 }
