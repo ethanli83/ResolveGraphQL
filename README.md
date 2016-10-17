@@ -1,6 +1,7 @@
 # ResolveGraphQL
 An example on how to solving N+1 problem for GraphQL using graphql-dotnet
 
+
 # Setup .Net core
 This exmaple uses .net core. You can get it and learn more about it from the link below:
 https://www.microsoft.com/net/core#windows
