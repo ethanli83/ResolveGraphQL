@@ -28,8 +28,14 @@ namespace ResolveGraphQL.Schema
                 "friends",
                 resolve: context =>
                 {
+                    // first to get the node which is a type of Human
                     var human = context.GetGraphNode<Human>();
+                    // get all its siblings of the node
                     var collection = context.GetNodeCollection<Human>();
+
+                    // GetOrAddRelation will first check if there is a stored result for key 'friends'
+                    // if the result exist, it will immidately return the stored result. 
+                    // otherwise, it will create a new NodeCollection with the given loader function
                     var childCollection = collection.GetOrAddRelation(
                         "friends",
                         () => 
@@ -46,6 +52,8 @@ namespace ResolveGraphQL.Schema
                                 });
                         });
 
+                    // look for the friends for the actual node
+                    // todo: need to index the query result so that we can search quicker.
                     return childCollection.Where(d => d.Node.Friends.Any(f => f.HumanId == human.HumanId));
                 }
             );
