@@ -20,3 +20,24 @@ first, then you can run previous commands to create it again.
 ```dotnet ef database drop```
 ### 2. Remove the migration file
 ```dotnet ef migrations remove```
+
+
+#The concept of the solution.
+
+In the original resolving process, siblings are resolved individually. Which means, even through all the children of given siblings are stored in the same table, we will still call database per each sibling. This is inefficient for most database such as mssql.
+
+This sample code trys to improve the perform of resolving graphql by only calling database once per child property. For example, assuming in the StarWar database we have 3 human and each of them has 2 friends. When we query the data by:
+```
+query HumansQuery {
+    humans {
+        name
+        friends {
+            name
+        }
+    }
+}
+```
+We only want to call the database once for resolving 'friends', rather than calling database 3 times.
+
+
+
