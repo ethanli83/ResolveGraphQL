@@ -1,34 +1,53 @@
 # ResolveGraphQL
-An example on how to solving N+1 problem for GraphQL using graphql-dotnet
-
+An example of how to solve the N+1 problem for GraphQL using graphql-dotnet
 
 # Setup .Net core
-This exmaple uses .net core. You can get it and learn more about it from the link below:
-https://www.microsoft.com/net/core#windows
+This exmaple uses .net core. You can get it and learn more about it from
+https://www.microsoft.com/net/core
 
 # Setup Entity Framework
-I use entity framework + sqlite to create a simple database to run queries. 
+I use entity framework + sqlite to create a simple database to run queries.
 
-You need to run commands below if you are running the code for the first time.  
+You will need to run the commands below if you are running the code for the
+first time.
+
+### 0. Restore packages
+
+    dotnet restore
+
 ### 1. Create migration file
-```dotnet ef migrations add InitialSetup```
+
+    dotnet ef migrations add InitialSetup
+
 ### 2. Update database with generated schema
-```dotnet ef database update```
 
-If you want to recreate the database, run following commands to drop the db 
-first, then you can run previous commands to create it again.
+    dotnet ef database update
+
+If you want to recreate the database, run the following commands to drop the db
+first, then you can run the previous commands to create it again.
+
 ### 1. Drop the database first
-```dotnet ef database drop```
+
+    dotnet ef database drop
+
 ### 2. Remove the migration file
-```dotnet ef migrations remove```
 
+    dotnet ef migrations remove
 
-#The concept of the solution.
+# The concept of the solution.
+In the original resolving process, siblings are resolved individually.
+Which means that even though all of the children of some given siblings
+are stored in the same table, we will call the database once for each sibling,
+hitting the same table over and over. This is inefficient for most databases
+such as mssql, or sqlite.
 
-In the original resolving process, siblings are resolved individually. Which means, even through all the children of given siblings are stored in the same table, we will still call database per each sibling. This is inefficient for most database such as mssql.
+This sample code tries to improve the performance of resolving graphql by
+only calling the database once per child property. For example, assuming,
+in the StarWars database, we have 3 humans and each of them has 2 friends.
 
-This sample code trys to improve the performance of resolving graphql by only calling database once per child property. For example, assuming in the StarWar database we have 3 human and each of them has 2 friends. When we query the database by:
-```
+When we resolve this graphql
+
+```graphql
 query HumansQuery {
     humans {
         name
@@ -38,23 +57,38 @@ query HumansQuery {
     }
 }
 ```
-We only want to call the database once for resolving 'friends', rather than calling the database 3 times.
 
-To achive this goal, we need two piece of information when we resolve child property of a sibling. Firstly, we need to have access to all siblings so that we can composite a query to database containing all the parent ids. Secondly, we need a way to tell if a query to database for the child property has be called to make sure we only call database once.
+We only want to call the database once for resolving `friends`, rather than
+calling the database 3 times.
 
-In the same code, we have two core classes namely: GraphNode<T> and NodeCollection<T>. 
+To achieve this goal, we need two pieces of information when we resolve a
+child property of a sibling. Firstly, we need to have access to all of the
+siblings so that we can compose a query to the database containing all the
+parent ids (that is, the ids of the siblings). Secondly, we need a way to
+tell if the query for the child property has already been called to ensure
+we only call the database once.
 
-GraphNode<T> has a property called 'Collection' which contains all the siblings of the Node. 
+In this code, we have two core classes, namely:
+`GraphNode<T>` and `NodeCollection<T>`.
 
-NodeCollection<T> has a loader function and a private field '_nodes'. this class will only call the loader function once to fill the '_nodes' field, and will not call the loader again if the '_nodes' has be initialized.
+`GraphNode<T>` has a property called `Collection` which contains all of the
+siblings of the Node.
 
-NodeCollection<T> also has a private dictionary called '_relations'. This dictionary stores all resolved child properties. When resolving a child, the program firstly checks the dictionary to see if the child has been resolved or not. If it has, the program will grab the stored result rather than calling database again.
+`NodeCollection<T>` has a loader function, and a private field `_nodes`.
+This class will only call the loader function once to fill the `_nodes` field
+and will not call the loader again if `_nodes` has already been initialized.
 
-With helps from this two classes, we achive the goal of only calling database once per child property.
+`NodeCollection<T>` also has a private dictionary called `_relations`.
+This dictionary stores all of the resolved child properties. When resolving a
+child, we first check the dictionary to see if the child has already been resolved.
+If it has, we grab the stored result rather than calling the database again.
 
-Now, let's have a look at a real example. 
+With help from these two classes, we achieve the goal of only calling the
+database once per child property.
 
-Here is how the resolve function of 'friends' implemented for HumanType:   
+Now, let's have a look at a real example.
+
+Here's how the resolve function of the `friends` field is implemented for `HumanType`:
 
 ```csharp
 public class HumanType : ObjectGraphType
@@ -67,32 +101,33 @@ public class HumanType : ObjectGraphType
             "friends",
             resolve: context =>
             {
-                // first to get the graph node which is a type of GraphNode<Human>    
+                // First get the graph node which must be a GraphNode<Human>
                 var graphNode = (GraphNode<Human>)context.Source;
-                
-                // get the actal node 
+
+                // The resolve function is called once for each human while resolving 'friends';
+                // this node is the current human for which 'friends' is being resolved.
                 var human = graphNode.Node;
 
-                // get all its siblings of the node
+                // Get all of the siblings of the node
                 var collection = graphNode.Collection;
-                
-                // GetOrAddRelation will first check if there is a stored result for key 'friends'
-                // if the result exist, it will immidately return the stored result. 
-                // otherwise, it will create a new NodeCollection with the given loader function 
+
+                // GetOrAddRelation will first check if there is a stored result for the key 'friends'
+                // If the result exists, it will immediately return the stored result.
+                // Otherwise, it will create a new NodeCollection using the given loader function
                 var childCollection = collection.GetOrAddRelation(
                     "friends",
-                    () => 
+                    () =>
                     {
-                        // get ids from all human
+                        // get the ids from all the humans
                         var humanIds = collection.Select(n => n.Node.HumanId).ToArray();
 
                         // create a node collection for 'friends' with a loader function
                         return new NodeCollection<Droid>(
-                            () => 
+                            () =>
                             {
                                 Console.WriteLine("Loading all friends for humans");
 
-                                // call entity frameworks to get all friends for given all human
+                                // call entity framework to get all the friends for all the given humans
                                 return db.Droids.
                                     Where(d => d.Friends.Any(f => humanIds.Contains(f.HumanId))).
                                     Include(d => d.Friends).
@@ -100,11 +135,11 @@ public class HumanType : ObjectGraphType
                             });
                     });
 
-                // look for the friends for the actual node
-                // notice that the sample code is looping through the whole collection to search
-                // for friends for each human. this is inefficient especially if the collection is huge.
-                // to solve this issue, we need to index the query result so that we can search quicker. 
-                // for example, make a dictionary using HumanId and search on the dictionary instead.
+                // Look for the friends of only the current human.
+                // Notice that this sample code is looping through the whole collection to search
+                // for the friends for each human. This is inefficient, especially if the collection is huge.
+                // Normally we should index the query result so that we don't have to do a full search every
+                // time. For example, make a dictionary using HumanId and search the dictionary instead.
                 return childCollection.Where(d => d.Node.Friends.Any(f => f.HumanId == human.HumanId));
             }
         );
