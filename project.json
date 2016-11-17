@@ -5,7 +5,7 @@
     "emitEntryPoint": true
   },
   "dependencies": {
-    "GraphQL": "0.12.0-alpha-511",
+    "GraphQL": "0.13.1.601",
     "Microsoft.EntityFrameworkCore.Sqlite": "1.0.0",
     "Microsoft.EntityFrameworkCore.Design": {
       "version": "1.0.0-preview2-final",

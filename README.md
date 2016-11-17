@@ -93,56 +93,72 @@ Here's how the resolve function of the `friends` field is implemented for `Human
 ```csharp
 public class HumanType : ObjectGraphType
 {
+    // This indexer indexes the relation from human to her/his droid friends.
+    // It will perform better than search for droids in for loop.
+    private static NodeCollectionIndexer<Droid> _friendsIndexer = 
+        new NodeCollectionIndexer<Droid>((d, index) => {
+            var hIds = d.Node.Friends.Select(f => f.HumanId).Distinct();
+            foreach(var hId in hIds)
+            {
+                if (!index.ContainsKey(hId))
+                    index[hId] = new List<GraphNode<Droid>>();
+
+                var dList = index[hId];
+                dList.Add(d);
+            }
+        });
+
     public HumanType(StarWarsContext db)
     {
         Name = "Human";
+
+        Field(x => x.Node.HumanId).
+            Name("id").
+            Description("The id of the human.");
+
+        Field(x => x.Node.Name).
+            Name("name").
+            Description("The name of the human.");
+
+        Field(x => x.Node.HomePlanet).
+            Name("homePlanet").
+            Description("The home planet of the human.");
 
         Field<ListGraphType<CharacterInterface>>(
             "friends",
             resolve: context =>
             {
-                // First get the graph node which must be a GraphNode<Human>
-                var graphNode = (GraphNode<Human>)context.Source;
+                // first to get the node which is a type of Human
+                var human = context.GetGraphNode<Human>();
+                // get all its siblings of the node
+                var collection = context.GetNodeCollection<Human>();
 
-                // The resolve function is called once for each human while resolving 'friends';
-                // this node is the current human for which 'friends' is being resolved.
-                var human = graphNode.Node;
-
-                // Get all of the siblings of the node
-                var collection = graphNode.Collection;
-
-                // GetOrAddRelation will first check if there is a stored result for the key 'friends'
-                // If the result exists, it will immediately return the stored result.
-                // Otherwise, it will create a new NodeCollection using the given loader function
+                // GetOrAddRelation will first check if there is a stored result for the indexer
+                // if the result exist, it will immidately return the stored result. 
+                // otherwise, it will create a new NodeCollection with the given loader function
                 var childCollection = collection.GetOrAddRelation(
-                    "friends",
-                    () =>
+                    _friendsIndexer,
+                    (indexer) => 
                     {
-                        // get the ids from all the humans
                         var humanIds = collection.Select(n => n.Node.HumanId).ToArray();
 
-                        // create a node collection for 'friends' with a loader function
-                        return new NodeCollection<Droid>(
-                            () =>
-                            {
-                                Console.WriteLine("Loading all friends for humans");
+                        Console.WriteLine("Loading all friends for humans");
+                        var droids = db.Droids.
+                            Where(d => d.Friends.Any(f => humanIds.Contains(f.HumanId))).
+                            Include(d => d.Friends).
+                            ToList();
 
-                                // call entity framework to get all the friends for all the given humans
-                                return db.Droids.
-                                    Where(d => d.Friends.Any(f => humanIds.Contains(f.HumanId))).
-                                    Include(d => d.Friends).
-                                    ToList();
-                            });
+                        return new NodeCollection<Droid>(droids, indexer);
                     });
 
-                // Look for the friends of only the current human.
-                // Notice that this sample code is looping through the whole collection to search
-                // for the friends for each human. This is inefficient, especially if the collection is huge.
-                // Normally we should index the query result so that we don't have to do a full search every
-                // time. For example, make a dictionary using HumanId and search the dictionary instead.
-                return childCollection.Where(d => d.Node.Friends.Any(f => f.HumanId == human.HumanId));
+                // This function will look for droids using the index that created by the indexer
+                return childCollection.GetManyByKey(human.HumanId);
             }
         );
+
+        Interface<CharacterInterface>();
+
+        IsTypeOf = value => value is GraphNode<Human>;
     }
 }
 ```

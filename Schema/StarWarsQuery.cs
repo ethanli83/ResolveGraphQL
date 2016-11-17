@@ -21,12 +21,9 @@ namespace ResolveGraphQL.Schema
                 resolve: context => 
                 {
                     var id = context.GetArgument<int>("id");
-                    var collection = new NodeCollection<Human>(
-                        () => 
-                        {
-                            Console.WriteLine("Loading human: " + id);
-                            return db.Humans.Where(h => h.HumanId == id).ToList();
-                        });
+                    Console.WriteLine("Loading human: " + id);
+                    var humans = db.Humans.Where(h => h.HumanId == id).ToList();
+                    var collection = new NodeCollection<Human>(humans);
 
                     return collection.Single();
                 }
@@ -35,12 +32,9 @@ namespace ResolveGraphQL.Schema
             Field<ListGraphType<HumanType>>(
                 "humans",
                 resolve: context => {
-                    var collection = new NodeCollection<Human>(
-                        () => 
-                        {
-                            Console.WriteLine("Loading all humans");
-                            return db.Humans.ToList();
-                        });
+                    Console.WriteLine("Loading all humans");
+                    var humans = db.Humans.ToList();
+                    var collection = new NodeCollection<Human>(humans);
 
                     return collection;
                 }
@@ -54,12 +48,9 @@ namespace ResolveGraphQL.Schema
                 resolve: context => 
                 {
                     var id = context.GetArgument<int>("id");
-                    var collection = new NodeCollection<Droid>(
-                        () => 
-                        {
-                            Console.WriteLine("Loading droid: " + id);
-                            return db.Droids.Where(d => d.DroidId == id).ToList();
-                        });
+                    Console.WriteLine("Loading droid: " + id);
+                    var driods = db.Droids.Where(d => d.DroidId == id).ToList();
+                    var collection = new NodeCollection<Droid>(driods);
 
                     return collection.Single();
                 }
@@ -68,19 +59,11 @@ namespace ResolveGraphQL.Schema
             Field<ListGraphType<CharacterInterface>>(
                 "characters",
                 resolve: context => {
-                    var humans = new NodeCollection<Human>(
-                        () => 
-                        {
-                            Console.WriteLine("Loading all humans for characters");
-                            return db.Humans.ToList();
-                        });
+                    Console.WriteLine("Loading all humans  for characters");
+                    var humans = new NodeCollection<Human>(db.Humans.ToList());
 
-                    var droids = new NodeCollection<Droid>(
-                        () =>
-                        {
-                            Console.WriteLine("Loading all droids for characters");
-                            return db.Droids.ToList(); 
-                        });
+                    Console.WriteLine("Loading all droids for characters");
+                    var droids = new NodeCollection<Droid>(db.Droids.ToList());
 
                     return humans.Cast<object>().Union(droids);
                 }

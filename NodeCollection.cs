@@ -9,51 +9,48 @@ namespace ResolveGraphQL
 {
     public class NodeCollection<T> : IEnumerable<GraphNode<T>>
     {
-        private ConcurrentDictionary<string, object> _relations = new ConcurrentDictionary<string, object>();
+        private readonly ConcurrentDictionary<NodeCollectionIndexer, object> _relations = 
+            new ConcurrentDictionary<NodeCollectionIndexer, object>();
 
-        private GraphNode<T>[] _nodes;
+        private readonly GraphNode<T>[] _nodes;
 
-        private Func<IEnumerable<T>> _nodeLoader;
+        private readonly Dictionary<object, List<GraphNode<T>>> _index;
 
-        public NodeCollection(Func<IEnumerable<T>> nodeLoader)
+        public NodeCollection(IEnumerable<T> nodes, NodeCollectionIndexer<T> indexer = null)
         {
-            _nodeLoader = nodeLoader;
+            _nodes = nodes.Select(n => new GraphNode<T>(n, this)).ToArray();
+            if (indexer != null)
+                _index = indexer.Index(_nodes);
         }
 
-        private object _loaderLock = new object();
-        protected IEnumerable<GraphNode<T>> Nodes 
+        public GraphNode<T> GetSingleByKey(object key)
         {
-            get 
-            {
-                if (_nodes == null)
-                {
-                    lock(_loaderLock)
-                    {
-                        if (_nodes == null)
-                        {
-                            var result = _nodeLoader();
-                            _nodes = result.Select(n => new GraphNode<T>(n, this)).ToArray();
-                        } 
-                    }
-                }
-
-                return _nodes;
-            }
+            return _index != null && _index.ContainsKey(key) 
+                ? _index[key].SingleOrDefault()
+                : default(GraphNode<T>);
         }
 
-        internal NodeCollection<TC> GetOrAddRelation<TC>(string relationName, Func<NodeCollection<TC>> childCollectionLoader)
+        public GraphNode<T>[] GetManyByKey(object key)
         {
-            return (NodeCollection<TC>)_relations.GetOrAdd(relationName, rn => childCollectionLoader());
+            return _index != null && _index.ContainsKey(key) 
+                ? _index[key].ToArray()
+                : null;
+        }
+
+        internal NodeCollection<TC> GetOrAddRelation<TC>(
+            NodeCollectionIndexer<TC> indexer, Func<NodeCollectionIndexer<TC>, NodeCollection<TC>> childCollectionLoader)
+        {
+            return (NodeCollection<TC>)_relations.GetOrAdd(indexer, rn => childCollectionLoader((NodeCollectionIndexer<TC>)rn));
         }
 
         public IEnumerator<GraphNode<T>> GetEnumerator()
         {
-            return Nodes.GetEnumerator();
+            return ((IEnumerable<GraphNode<T>>)_nodes).GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return Nodes.GetEnumerator();
+            return _nodes.GetEnumerator();
         }
     }
 
@@ -77,9 +74,43 @@ namespace ResolveGraphQL
             return ((GraphNode<T>)context.Source).Node;
         }
 
+        public static T GetGraphNode<T>(this ResolveFieldContext<GraphNode<T>> context)
+        {
+            return context.Source.Node;
+        }
+
         public static NodeCollection<T> GetNodeCollection<T>(this ResolveFieldContext context)
         {
             return ((GraphNode<T>)context.Source).Collection;
+        }
+
+        public static NodeCollection<T> GetNodeCollection<T>(this ResolveFieldContext<GraphNode<T>> context)
+        {
+            return context.Source.Collection;
+        }
+    }
+
+    public abstract class NodeCollectionIndexer
+    {
+        
+    }
+
+    public class NodeCollectionIndexer<TTo> : NodeCollectionIndexer
+    {
+        private readonly Action<GraphNode<TTo>, Dictionary<object, List<GraphNode<TTo>>>> _indexFunc;
+
+        public NodeCollectionIndexer(Action<GraphNode<TTo>, Dictionary<object, List<GraphNode<TTo>>>> indexFunc)
+        {
+            _indexFunc = indexFunc;
+        }
+
+        public Dictionary<object, List<GraphNode<TTo>>> Index(IEnumerable<GraphNode<TTo>> nodes)
+        {
+            var index = new Dictionary<object, List<GraphNode<TTo>>>();
+            foreach(var node in nodes)
+                _indexFunc(node, index);
+            
+            return index;
         }
     }
 }
