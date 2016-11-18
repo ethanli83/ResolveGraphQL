@@ -96,8 +96,8 @@ public class HumanType : ObjectGraphType
     // This index create function will generate a dictionay for search droid friends of human
     // It will perform better than search for droids in for loop.
     private static Func<NodeCollection<Droid>, Dictionary<object, GraphNode<Droid>[]>> _friendsIndexer = 
-        nc => 
-            nc.Select(n => n.Node).SelectMany(h => h.Friends).
+        nc => nc.
+            Select(n => n.Node).SelectMany(h => h.Friends).
             GroupBy(h => (object)h.HumanId).
             ToDictionary(g => g.Key, g => g.Select(f => new GraphNode<Droid>(f.Droid, nc)).ToArray());
 
