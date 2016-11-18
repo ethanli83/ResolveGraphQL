@@ -27,16 +27,10 @@ namespace ResolveGraphQL
                 rn => 
                 {
                     var collection = childCollectionLoader();
-                    return collection.ApplyIndex(indexFunc);
+                    return new IndexedNodeCollection<TC, TI>(indexFunc(collection));
                 });
         }
-
-        private IndexedNodeCollection<T, TIndex> ApplyIndex<TIndex>(
-            Func<NodeCollection<T>, Dictionary<TIndex, GraphNode<T>[]>> indexFunc)
-        {
-            return new IndexedNodeCollection<T, TIndex>(indexFunc(this));
-        }
-
+        
         public IEnumerator<GraphNode<T>> GetEnumerator()
         {
             return ((IEnumerable<GraphNode<T>>)_nodes).GetEnumerator();
