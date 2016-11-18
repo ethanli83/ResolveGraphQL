@@ -9,10 +9,10 @@ namespace ResolveGraphQL.Schema
 {
     public class DroidType : ObjectGraphType<GraphNode<Droid>>
     {
-        private static Func<NodeCollection<Human>, Dictionary<object, GraphNode<Human>[]>> _friendsIndexer = 
+        private static Func<NodeCollection<Human>, Dictionary<int, GraphNode<Human>[]>> _friendsIndexer = 
             nc => nc.
                 Select(n => n.Node).SelectMany(h => h.Friends).
-                GroupBy(h => (object)h.DroidId).
+                GroupBy(h => h.DroidId).
                 ToDictionary(g => g.Key, g => g.Select(f => new GraphNode<Human>(f.Human, nc)).ToArray());
             
         public DroidType(StarWarsContext db)

@@ -10,10 +10,10 @@ namespace ResolveGraphQL.Schema
     public class HumanType : ObjectGraphType<GraphNode<Human>>
     {
         // a indexer which will give node collection a index 
-        private static Func<NodeCollection<Droid>, Dictionary<object, GraphNode<Droid>[]>> _friendsIndexer = 
+        private static Func<NodeCollection<Droid>, Dictionary<int, GraphNode<Droid>[]>> _friendsIndexer = 
             nc => 
                 nc.Select(n => n.Node).SelectMany(h => h.Friends).
-                GroupBy(h => (object)h.HumanId).
+                GroupBy(h => h.HumanId).
                 ToDictionary(g => g.Key, g => g.Select(f => new GraphNode<Droid>(f.Droid, nc)).ToArray());
 
         public HumanType(StarWarsContext db)

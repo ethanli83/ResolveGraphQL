@@ -13,44 +13,28 @@ namespace ResolveGraphQL
 
         private readonly GraphNode<T>[] _nodes;
 
-        private Dictionary<object, GraphNode<T>[]> _index;
-
         public NodeCollection(IEnumerable<T> nodes)
         {
             _nodes = nodes.Select(n => new GraphNode<T>(n, this)).ToArray();
         }
 
-        public GraphNode<T> GetSingleByKey(object key)
-        {
-            return _index != null && _index.ContainsKey(key) 
-                ? _index[key].SingleOrDefault()
-                : default(GraphNode<T>);
-        }
-
-        public GraphNode<T>[] GetManyByKey(object key)
-        {
-            return _index != null && _index.ContainsKey(key) 
-                ? _index[key].ToArray()
-                : null;
-        }
-
-        internal NodeCollection<TC> GetOrAddRelation<TC>(
-            Func<NodeCollection<TC>, Dictionary<object, GraphNode<TC>[]>> indexFunc, 
+        internal IndexedNodeCollection<TC, TI> GetOrAddRelation<TC, TI>(
+            Func<NodeCollection<TC>, Dictionary<TI, GraphNode<TC>[]>> indexFunc, 
             Func<NodeCollection<TC>> childCollectionLoader)
         {
-            return (NodeCollection<TC>)_relations.GetOrAdd(
+            return (IndexedNodeCollection<TC, TI>)_relations.GetOrAdd(
                 indexFunc, 
                 rn => 
                 {
                     var collection = childCollectionLoader();
-                    collection.ApplyIndex(indexFunc);
-                    return collection;
+                    return collection.ApplyIndex(indexFunc);
                 });
         }
 
-        private void ApplyIndex(Func<NodeCollection<T>, Dictionary<object, GraphNode<T>[]>> indexFunc)
+        private IndexedNodeCollection<T, TIndex> ApplyIndex<TIndex>(
+            Func<NodeCollection<T>, Dictionary<TIndex, GraphNode<T>[]>> indexFunc)
         {
-            _index = indexFunc(this);
+            return new IndexedNodeCollection<T, TIndex>(indexFunc(this));
         }
 
         public IEnumerator<GraphNode<T>> GetEnumerator()
@@ -62,6 +46,30 @@ namespace ResolveGraphQL
         {
             return _nodes.GetEnumerator();
         }
+    }
+    public class IndexedNodeCollection<T, TIndex>
+    {
+        private Dictionary<TIndex, GraphNode<T>[]> _index;
+
+        public IndexedNodeCollection(Dictionary<TIndex, GraphNode<T>[]> index)
+        {
+            _index = index;
+        }
+
+        public GraphNode<T> GetSingleByKey(TIndex key)
+        {
+            return _index != null && _index.ContainsKey(key) 
+                ? _index[key].SingleOrDefault()
+                : default(GraphNode<T>);
+        }
+
+        public GraphNode<T>[] GetManyByKey(TIndex key)
+        {
+            return _index != null && _index.ContainsKey(key) 
+                ? _index[key].ToArray()
+                : null;
+        }
+
     }
 
     public class GraphNode<T>
