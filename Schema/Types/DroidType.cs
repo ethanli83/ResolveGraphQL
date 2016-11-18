@@ -9,18 +9,11 @@ namespace ResolveGraphQL.Schema
 {
     public class DroidType : ObjectGraphType<GraphNode<Droid>>
     {
-        private static NodeCollectionIndexer<Human> _friendsIndexer = 
-            new NodeCollectionIndexer<Human>((d, index) => {
-                var hIds = d.Node.Friends.Select(f => f.DroidId).Distinct();
-                foreach(var hId in hIds)
-                {
-                    if (!index.ContainsKey(hId))
-                        index[hId] = new List<GraphNode<Human>>();
-
-                    var dList = index[hId];
-                    dList.Add(d);
-                }
-            });
+        private static Func<NodeCollection<Human>, Dictionary<object, GraphNode<Human>[]>> _friendsIndexer = 
+            nc => 
+                nc.Select(n => n.Node).SelectMany(h => h.Friends).
+                GroupBy(h => (object)h.DroidId).
+                ToDictionary(g => g.Key, g => g.Select(f => new GraphNode<Human>(f.Human, nc)).ToArray());
             
         public DroidType(StarWarsContext db)
         {
@@ -47,7 +40,7 @@ namespace ResolveGraphQL.Schema
                     var collection = context.GetNodeCollection<Droid>();
                     var childCollection = collection.GetOrAddRelation(
                         _friendsIndexer,
-                        (indexer) => 
+                        () => 
                         {
                             var droidIds = collection.Select(n => n.Node.DroidId).ToArray();
                             
@@ -57,10 +50,10 @@ namespace ResolveGraphQL.Schema
                                 Include(d => d.Friends).
                                 ToList();
 
-                            return new NodeCollection<Human>(humans, indexer);
+                            return new NodeCollection<Human>(humans);
                         });
 
-                    return childCollection.Where(d => d.Node.Friends.Any(f => f.DroidId == droid.DroidId));
+                    return childCollection.GetManyByKey(droid.DroidId);
                 }
             );
 

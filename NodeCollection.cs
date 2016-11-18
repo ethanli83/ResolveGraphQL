@@ -9,18 +9,15 @@ namespace ResolveGraphQL
 {
     public class NodeCollection<T> : IEnumerable<GraphNode<T>>
     {
-        private readonly ConcurrentDictionary<NodeCollectionIndexer, object> _relations = 
-            new ConcurrentDictionary<NodeCollectionIndexer, object>();
+        private readonly ConcurrentDictionary<object, object> _relations = new ConcurrentDictionary<object, object>();
 
         private readonly GraphNode<T>[] _nodes;
 
-        private readonly Dictionary<object, List<GraphNode<T>>> _index;
+        private Dictionary<object, GraphNode<T>[]> _index;
 
-        public NodeCollection(IEnumerable<T> nodes, NodeCollectionIndexer<T> indexer = null)
+        public NodeCollection(IEnumerable<T> nodes)
         {
             _nodes = nodes.Select(n => new GraphNode<T>(n, this)).ToArray();
-            if (indexer != null)
-                _index = indexer.Index(_nodes);
         }
 
         public GraphNode<T> GetSingleByKey(object key)
@@ -38,9 +35,22 @@ namespace ResolveGraphQL
         }
 
         internal NodeCollection<TC> GetOrAddRelation<TC>(
-            NodeCollectionIndexer<TC> indexer, Func<NodeCollectionIndexer<TC>, NodeCollection<TC>> childCollectionLoader)
+            Func<NodeCollection<TC>, Dictionary<object, GraphNode<TC>[]>> indexFunc, 
+            Func<NodeCollection<TC>> childCollectionLoader)
         {
-            return (NodeCollection<TC>)_relations.GetOrAdd(indexer, rn => childCollectionLoader((NodeCollectionIndexer<TC>)rn));
+            return (NodeCollection<TC>)_relations.GetOrAdd(
+                indexFunc, 
+                rn => 
+                {
+                    var collection = childCollectionLoader();
+                    collection.ApplyIndex(indexFunc);
+                    return collection;
+                });
+        }
+
+        private void ApplyIndex(Func<NodeCollection<T>, Dictionary<object, GraphNode<T>[]>> indexFunc)
+        {
+            _index = indexFunc(this);
         }
 
         public IEnumerator<GraphNode<T>> GetEnumerator()
@@ -87,30 +97,6 @@ namespace ResolveGraphQL
         public static NodeCollection<T> GetNodeCollection<T>(this ResolveFieldContext<GraphNode<T>> context)
         {
             return context.Source.Collection;
-        }
-    }
-
-    public abstract class NodeCollectionIndexer
-    {
-        
-    }
-
-    public class NodeCollectionIndexer<TTo> : NodeCollectionIndexer
-    {
-        private readonly Action<GraphNode<TTo>, Dictionary<object, List<GraphNode<TTo>>>> _indexFunc;
-
-        public NodeCollectionIndexer(Action<GraphNode<TTo>, Dictionary<object, List<GraphNode<TTo>>>> indexFunc)
-        {
-            _indexFunc = indexFunc;
-        }
-
-        public Dictionary<object, List<GraphNode<TTo>>> Index(IEnumerable<GraphNode<TTo>> nodes)
-        {
-            var index = new Dictionary<object, List<GraphNode<TTo>>>();
-            foreach(var node in nodes)
-                _indexFunc(node, index);
-            
-            return index;
         }
     }
 }

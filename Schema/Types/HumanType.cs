@@ -10,18 +10,11 @@ namespace ResolveGraphQL.Schema
     public class HumanType : ObjectGraphType<GraphNode<Human>>
     {
         // a indexer which will give node collection a index 
-        private static NodeCollectionIndexer<Droid> _friendsIndexer = 
-            new NodeCollectionIndexer<Droid>((d, index) => {
-                var hIds = d.Node.Friends.Select(f => f.HumanId).Distinct();
-                foreach(var hId in hIds)
-                {
-                    if (!index.ContainsKey(hId))
-                        index[hId] = new List<GraphNode<Droid>>();
-
-                    var dList = index[hId];
-                    dList.Add(d);
-                }
-            });
+        private static Func<NodeCollection<Droid>, Dictionary<object, GraphNode<Droid>[]>> _friendsIndexer = 
+            nc => 
+                nc.Select(n => n.Node).SelectMany(h => h.Friends).
+                GroupBy(h => (object)h.HumanId).
+                ToDictionary(g => g.Key, g => g.Select(f => new GraphNode<Droid>(f.Droid, nc)).ToArray());
 
         public HumanType(StarWarsContext db)
         {
@@ -53,7 +46,7 @@ namespace ResolveGraphQL.Schema
                     // otherwise, it will create a new NodeCollection with the given loader function
                     var childCollection = collection.GetOrAddRelation(
                         _friendsIndexer,
-                        (indexer) => 
+                        () => 
                         {
                             var humanIds = collection.Select(n => n.Node.HumanId).ToArray();
 
@@ -63,7 +56,7 @@ namespace ResolveGraphQL.Schema
                                 Include(d => d.Friends).
                                 ToList();
 
-                            return new NodeCollection<Droid>(droids, indexer);
+                            return new NodeCollection<Droid>(droids);
                         });
 
                     return childCollection.GetManyByKey(human.HumanId);

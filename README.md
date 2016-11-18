@@ -93,20 +93,13 @@ Here's how the resolve function of the `friends` field is implemented for `Human
 ```csharp
 public class HumanType : ObjectGraphType
 {
-    // This indexer indexes the relation from human to her/his droid friends.
+    // This index create function will generate a dictionay for search droid friends of human
     // It will perform better than search for droids in for loop.
-    private static NodeCollectionIndexer<Droid> _friendsIndexer = 
-        new NodeCollectionIndexer<Droid>((d, index) => {
-            var hIds = d.Node.Friends.Select(f => f.HumanId).Distinct();
-            foreach(var hId in hIds)
-            {
-                if (!index.ContainsKey(hId))
-                    index[hId] = new List<GraphNode<Droid>>();
-
-                var dList = index[hId];
-                dList.Add(d);
-            }
-        });
+    private static Func<NodeCollection<Droid>, Dictionary<object, GraphNode<Droid>[]>> _friendsIndexer = 
+        nc => 
+            nc.Select(n => n.Node).SelectMany(h => h.Friends).
+            GroupBy(h => (object)h.HumanId).
+            ToDictionary(g => g.Key, g => g.Select(f => new GraphNode<Droid>(f.Droid, nc)).ToArray());
 
     public HumanType(StarWarsContext db)
     {
@@ -133,12 +126,12 @@ public class HumanType : ObjectGraphType
                 // get all its siblings of the node
                 var collection = context.GetNodeCollection<Human>();
 
-                // GetOrAddRelation will first check if there is a stored result for the indexer
+                // GetOrAddRelation will first check if there is a stored result for the index function
                 // if the result exist, it will immidately return the stored result. 
                 // otherwise, it will create a new NodeCollection with the given loader function
                 var childCollection = collection.GetOrAddRelation(
                     _friendsIndexer,
-                    (indexer) => 
+                    () => 
                     {
                         var humanIds = collection.Select(n => n.Node.HumanId).ToArray();
 
@@ -148,10 +141,9 @@ public class HumanType : ObjectGraphType
                             Include(d => d.Friends).
                             ToList();
 
-                        return new NodeCollection<Droid>(droids, indexer);
+                        return new NodeCollection<Droid>(droids);
                     });
 
-                // This function will look for droids using the index that created by the indexer
                 return childCollection.GetManyByKey(human.HumanId);
             }
         );
