@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using GraphQL.Types;
 using Microsoft.EntityFrameworkCore;
@@ -9,12 +8,15 @@ namespace ResolveGraphQL.Schema
 {
     public class HumanType : ObjectGraphType<GraphNode<Human>>
     {
-        // a indexer which will give node collection a index 
-        private static Func<NodeCollection<Droid>, Dictionary<int, GraphNode<Droid>[]>> _friendsIndexer = 
-            nc => 
-                nc.Select(n => n.Node).SelectMany(h => h.Friends).
-                GroupBy(h => h.HumanId).
-                ToDictionary(g => g.Key, g => g.Select(f => new GraphNode<Droid>(f.Droid, nc)).ToArray());
+        // This indexer will generate a dictionay for search droid friends of human
+        // It will perform better than search for droids in for loop.
+        private static NodeCollectionIndexer<Droid, int> _friendsIndexer = 
+            new NodeCollectionIndexer<Droid, int>(
+                nc => nc.
+                    Select(n => n.Node).
+                    SelectMany(h => h.Friends).
+                    GroupBy(h => h.HumanId).
+                    ToDictionary(g => g.Key, g => g.Select(f => new GraphNode<Droid>(f.Droid, nc)).ToArray()));
 
         public HumanType(StarWarsContext db)
         {
@@ -44,7 +46,7 @@ namespace ResolveGraphQL.Schema
                     // GetOrAddRelation will first check if there is a stored result for the indexer
                     // if the result exist, it will immidately return the stored result. 
                     // otherwise, it will create a new NodeCollection with the given loader function
-                    var childCollection = collection.GetOrAddRelation(
+                    var indexedCollection = collection.GetOrAddRelation(
                         _friendsIndexer,
                         () => 
                         {
@@ -59,7 +61,7 @@ namespace ResolveGraphQL.Schema
                             return new NodeCollection<Droid>(droids);
                         });
 
-                    return childCollection.GetManyByKey(human.HumanId);
+                    return indexedCollection.GetManyByKey(human.HumanId);
                 }
             );
 

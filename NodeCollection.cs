@@ -19,15 +19,15 @@ namespace ResolveGraphQL
         }
 
         internal IndexedNodeCollection<TC, TI> GetOrAddRelation<TC, TI>(
-            Func<NodeCollection<TC>, Dictionary<TI, GraphNode<TC>[]>> indexFunc, 
+            NodeCollectionIndexer<TC, TI> indexer, 
             Func<NodeCollection<TC>> childCollectionLoader)
         {
             return (IndexedNodeCollection<TC, TI>)_relations.GetOrAdd(
-                indexFunc, 
+                indexer, 
                 rn => 
                 {
                     var collection = childCollectionLoader();
-                    return new IndexedNodeCollection<TC, TI>(indexFunc(collection));
+                    return indexer.Apply(collection);
                 });
         }
         
@@ -64,6 +64,20 @@ namespace ResolveGraphQL
                 : null;
         }
 
+    }
+
+    public class NodeCollectionIndexer<TN, TI>
+    {
+        private readonly Func<NodeCollection<TN>, Dictionary<TI, GraphNode<TN>[]>> _indexFunc;
+        public NodeCollectionIndexer(Func<NodeCollection<TN>, Dictionary<TI, GraphNode<TN>[]>> indexFunc)
+        {
+            _indexFunc = indexFunc;
+        }
+
+        public IndexedNodeCollection<TN, TI> Apply(NodeCollection<TN> collection)
+        {
+            return new IndexedNodeCollection<TN, TI>(_indexFunc(collection));
+        }
     }
 
     public class GraphNode<T>

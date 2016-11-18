@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using GraphQL.Types;
 using Microsoft.EntityFrameworkCore;
@@ -9,11 +8,13 @@ namespace ResolveGraphQL.Schema
 {
     public class DroidType : ObjectGraphType<GraphNode<Droid>>
     {
-        private static Func<NodeCollection<Human>, Dictionary<int, GraphNode<Human>[]>> _friendsIndexer = 
-            nc => nc.
-                Select(n => n.Node).SelectMany(h => h.Friends).
-                GroupBy(h => h.DroidId).
-                ToDictionary(g => g.Key, g => g.Select(f => new GraphNode<Human>(f.Human, nc)).ToArray());
+        private static NodeCollectionIndexer<Human, int> _friendsIndexer = 
+            new NodeCollectionIndexer<Human, int>(
+                nc => nc.
+                    Select(n => n.Node).
+                    SelectMany(h => h.Friends).
+                    GroupBy(h => h.DroidId).
+                    ToDictionary(g => g.Key, g => g.Select(f => new GraphNode<Human>(f.Human, nc)).ToArray()));
             
         public DroidType(StarWarsContext db)
         {
@@ -38,7 +39,7 @@ namespace ResolveGraphQL.Schema
                 {
                     var droid = context.GetGraphNode<Droid>();
                     var collection = context.GetNodeCollection<Droid>();
-                    var childCollection = collection.GetOrAddRelation(
+                    var indexedCollection = collection.GetOrAddRelation(
                         _friendsIndexer,
                         () => 
                         {
@@ -53,7 +54,7 @@ namespace ResolveGraphQL.Schema
                             return new NodeCollection<Human>(humans);
                         });
 
-                    return childCollection.GetManyByKey(droid.DroidId);
+                    return indexedCollection.GetManyByKey(droid.DroidId);
                 }
             );
 

@@ -93,13 +93,15 @@ Here's how the resolve function of the `friends` field is implemented for `Human
 ```csharp
 public class HumanType : ObjectGraphType
 {
-    // This index create function will generate a dictionay for search droid friends of human
+    // This indexer will generate a dictionay for search droid friends of human
     // It will perform better than search for droids in for loop.
-    private static Func<NodeCollection<Droid>, Dictionary<object, GraphNode<Droid>[]>> _friendsIndexer = 
-        nc => nc.
-            Select(n => n.Node).SelectMany(h => h.Friends).
-            GroupBy(h => (object)h.HumanId).
-            ToDictionary(g => g.Key, g => g.Select(f => new GraphNode<Droid>(f.Droid, nc)).ToArray());
+    private static NodeCollectionIndexer<Droid, int> _friendsIndexer = 
+        new NodeCollectionIndexer<Droid, int>(
+            nc => nc.
+                Select(n => n.Node).
+                SelectMany(h => h.Friends).
+                GroupBy(h => h.HumanId).
+                ToDictionary(g => g.Key, g => g.Select(f => new GraphNode<Droid>(f.Droid, nc)).ToArray()));
 
     public HumanType(StarWarsContext db)
     {
@@ -129,7 +131,7 @@ public class HumanType : ObjectGraphType
                 // GetOrAddRelation will first check if there is a stored result for the index function
                 // if the result exist, it will immidately return the stored result. 
                 // otherwise, it will create a new NodeCollection with the given loader function
-                var childCollection = collection.GetOrAddRelation(
+                var indexedCollection = collection.GetOrAddRelation(
                     _friendsIndexer,
                     () => 
                     {
@@ -144,7 +146,7 @@ public class HumanType : ObjectGraphType
                         return new NodeCollection<Droid>(droids);
                     });
 
-                return childCollection.GetManyByKey(human.HumanId);
+                return indexedCollection.GetManyByKey(human.HumanId);
             }
         );
 
