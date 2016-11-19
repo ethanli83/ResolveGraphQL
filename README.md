@@ -91,9 +91,9 @@ Now, let's have a look at a real example.
 Here's how the resolve function of the `friends` field is implemented for `HumanType`:
 
 ```csharp
-public class HumanType : ObjectGraphType
+public class HumanType : ObjectGraphType<GraphNode<Human>>
 {
-    // This indexer will generate a dictionay for search droid friends of human
+    // This indexer will generate a map from each human to their friends.
     // It will perform better than search for droids in for loop.
     private static NodeCollectionIndexer<Droid, int> _friendsIndexer = 
         new NodeCollectionIndexer<Droid, int>(
@@ -123,14 +123,13 @@ public class HumanType : ObjectGraphType
             "friends",
             resolve: context =>
             {
-                // first to get the node which is a type of Human
-                var human = context.GetGraphNode<Human>();
-                // get all its siblings of the node
-                var collection = context.GetNodeCollection<Human>();
+                // All of the humans we are resolving in the query.
+                var collection = context.GetNodeCollection();
 
-                // GetOrAddRelation will first check if there is a stored result for the index function
-                // if the result exist, it will immidately return the stored result. 
-                // otherwise, it will create a new NodeCollection with the given loader function
+                // Fetch all of the friends for every human we are resolving (only once).
+                // GetOrAddRelation will first check if there is a stored result for the indexer
+                // if the result exists, it will immediately return the stored result
+                // otherwise, it will create a new NodeCollection using the given loader function
                 var indexedCollection = collection.GetOrAddRelation(
                     _friendsIndexer,
                     () => 
@@ -146,6 +145,8 @@ public class HumanType : ObjectGraphType
                         return new NodeCollection<Droid>(droids);
                     });
 
+                // Return the friends of the human currently being resolved.
+                var human = context.GetGraphNode();
                 return indexedCollection.GetManyByKey(human.HumanId);
             }
         );

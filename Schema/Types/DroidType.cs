@@ -37,8 +37,7 @@ namespace ResolveGraphQL.Schema
                 "friends",
                 resolve: context => 
                 {
-                    var droid = context.GetGraphNode<Droid>();
-                    var collection = context.GetNodeCollection<Droid>();
+                    var collection = context.GetNodeCollection();
                     var indexedCollection = collection.GetOrAddRelation(
                         _friendsIndexer,
                         () => 
@@ -54,6 +53,7 @@ namespace ResolveGraphQL.Schema
                             return new NodeCollection<Human>(humans);
                         });
 
+                    var droid = context.GetGraphNode();
                     return indexedCollection.GetManyByKey(droid.DroidId);
                 }
             );
