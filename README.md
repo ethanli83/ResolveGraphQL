@@ -1,4 +1,4 @@
-# ResolveGraphQL
+# ResolveGraphQL [![Build Status](https://travis-ci.org/ethanli83/ResolveGraphQL.svg?branch=master)](https://travis-ci.org/ethanli83/ResolveGraphQL)
 An example of how to solve the N+1 problem for GraphQL using graphql-dotnet
 
 # Setup .Net core
