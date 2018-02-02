@@ -31,18 +31,18 @@ namespace ResolveDataModel
                 var schema = new StarWarsSchema((t) => container.Resolve(t) as GraphType);
 
                 var query = @"
-            query AllHumansQuery {
-                humans {
-                    name
-                    friends {
-                        id
-                        name
-                        ...on Droid {
-                            primaryFunction
+                    query AllHumansQuery {
+                        humans {
+                            name
+                            friends {
+                                id
+                                name
+                                ...on Droid {
+                                    primaryFunction
+                                }
+                            }
                         }
-                    }
-                }
-            }";
+                    }";
             
                 Console.WriteLine("Run AllHumansQuery");
 
@@ -52,14 +52,14 @@ namespace ResolveDataModel
                 Console.WriteLine();
 
                 query = @"
-            query AllCharactersQuery {
-                characters {
-                    name
-                    friends {
-                        name
-                    }
-                }
-            }";
+                    query AllCharactersQuery {
+                        characters {
+                            name
+                            friends {
+                                name
+                            }
+                        }
+                    }";
 
                 Console.WriteLine("Run AllCharactersQuery");
             
