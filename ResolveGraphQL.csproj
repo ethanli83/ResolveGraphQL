@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+	<PropertyGroup>
+		<TargetFramework>netcoreapp2.0</TargetFramework>
+		<UserSecretsId>aspnet-webapi-DB5C0519-EE6F-4073-9532-CEC7A3FD4963</UserSecretsId>
+		<RuntimeIdentifiers></RuntimeIdentifiers>
+	</PropertyGroup>
+	<PropertyGroup>
+		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+	</PropertyGroup>
+	<ItemGroup>
+		<Folder Include="wwwroot\" />
+	</ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="GraphQL" Version="0.13.1.601" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="2.0.0" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="2.0.0" />
+		<PackageReference Include="Unity" Version="5.5.6" />
+	</ItemGroup>
+	<ItemGroup>
+		<DotNetCliToolReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Tools" Version="2.0.1" />
+		<DotNetCliToolReference Include="Microsoft.DotNet.Watcher.Tools" Version="2.0.0" />
+		<DotNetCliToolReference Include="Microsoft.EntityFrameworkCore.Tools.DotNet" Version="2.0.0" />
+	</ItemGroup>
+</Project>
